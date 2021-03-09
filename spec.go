@@ -147,6 +147,10 @@ func (r *RawDefineDic) addDefinition(v reflect.Value) string {
 
 	r.handleStruct(v, schema)
 
+	if schemaGenerator, ok := v.Interface().(RawSchemaAugmentor); ok {
+		schemaGenerator.AugmentSwaggerSchema(schema)
+	}
+
 	// if schema.XML == nil {
 	// 	schema.XML = &XMLSchema{}
 	// }

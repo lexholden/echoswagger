@@ -33,6 +33,10 @@ type RawDefine struct {
 	Schema *JSONSchema
 }
 
+type RawSchemaAugmentor interface {
+	AugmentSwaggerSchema(schema *JSONSchema)
+}
+
 func (r *Root) docHandler(docPath string) echo.HandlerFunc {
 	t, err := template.New("swagger").Parse(SwaggerUIContent)
 	if err != nil {
