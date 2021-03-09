@@ -1,6 +1,7 @@
 package echoswagger
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -65,6 +66,12 @@ func (r *RawDefineDic) genSchema(v reflect.Value) *JSONSchema {
 		return nil
 	}
 	v = indirect(v)
+
+	if schemaGenerator, ok := v.Interface().(RawSchemaItem); ok {
+		fmt.Println("Have a shorthand to generate the schema")
+		return schemaGenerator.GenSchema()
+	}
+
 	st, sf := toSwaggerType(v.Type())
 	schema := &JSONSchema{}
 	if st == "array" {
@@ -106,6 +113,7 @@ func (r *RawDefineDic) genSchema(v reflect.Value) *JSONSchema {
 			schema.Example = v.Interface()
 		}
 	}
+
 	return schema
 }
 
