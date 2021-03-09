@@ -253,6 +253,7 @@ func New(e *echo.Echo, docPath string, i *Info) ApiRoot {
 
 	e.GET(connectPath(docPath), r.docHandler(docPath))
 	e.GET(connectPath(docPath, SpecName), r.specHandler(docPath))
+	e.GET(connectPath(docPath, SpecNameYaml), r.specHandlerYaml(docPath))
 	return r
 }
 

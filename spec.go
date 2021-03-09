@@ -12,6 +12,7 @@ const (
 	DefPrefix      = "#/definitions/"
 	SwaggerVersion = "2.0"
 	SpecName       = "swagger.json"
+	SpecNameYaml   = "swagger.yaml"
 )
 
 func (r *Root) specHandler(docPath string) echo.HandlerFunc {
@@ -30,6 +31,30 @@ func (r *Root) specHandler(docPath string) echo.HandlerFunc {
 		}
 		spec.BasePath = basePath
 		return c.JSON(http.StatusOK, spec)
+	}
+}
+
+func (r *Root) specHandlerYaml(docPath string) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		spec, err := r.GetSpec(c, docPath)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		var basePath string
+		if uri, err := url.ParseRequestURI(c.Request().Referer()); err == nil {
+			basePath = trimSuffixSlash(uri.Path, docPath)
+			spec.Host = uri.Host
+		} else {
+			basePath = trimSuffixSlash(c.Request().URL.Path, connectPath(docPath, SpecName))
+			spec.Host = c.Request().Host
+		}
+		spec.BasePath = basePath
+		c.Response().Header().Set(echo.HeaderContentType, "text/yaml")
+		return c.String(http.StatusOK, `
+hello: true
+cheese:
+	eggs: 3
+`)
 	}
 }
 
@@ -146,6 +171,10 @@ func (r *RawDefineDic) addDefinition(v reflect.Value) string {
 	}
 
 	r.handleStruct(v, schema)
+
+	if schemaGenerator, ok := v.Interface().(RawSchemaAugmentor); ok {
+		schemaGenerator.AugmentSwaggerSchema(schema)
+	}
 
 	// if schema.XML == nil {
 	// 	schema.XML = &XMLSchema{}
